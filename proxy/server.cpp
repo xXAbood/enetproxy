@@ -55,6 +55,7 @@ bool ingame = false;
 bool aapbypass = true;
 bool resolve_uid = false;
 bool resolve_uid2 = false;
+int kill_netid = -1;
 
 void send_log(std::string message) {
     std::string msg = "action|log\nmsg|" + message;
@@ -133,6 +134,15 @@ void handle_outgoing() {
                             std::string name = packet.substr(packet.find("/uid ") + 5);
                             send_log("resolving uid for " + name);
                             resolve_name_to_uid(name);
+                            enet_packet_destroy(evt.packet);
+                            return;
+                        } else if (packet.find("|text|/legal") != -1) {
+                            std::string name = packet.substr(packet.find("/uid ") + 5);
+                            send_log("using legal briefs");
+                            gameupdatepacket_t packet{};
+                            packet.m_type = PACKET_ITEM_ACTIVATE_REQUEST;
+                            packet.m_int_data = 3172;
+                            utils::send(m_server_peer, m_real_server, NET_MESSAGE_GAME_PACKET, (uint8_t*)&packet, sizeof(gameupdatepacket_t));
                             enet_packet_destroy(evt.packet);
                             return;
                         }
@@ -298,6 +308,8 @@ void handle_incoming() {
                                         case fnv32("OnConsoleMessage"): {
                                             varlist[1] = "`4[PROXY]`` " + varlist[1].get_string();
                                             utils::send(m_gt_peer, m_proxy_server, varlist);
+                                            enet_packet_destroy(event.packet);
+                                            return;
                                         } break;
                                         case fnv32("OnDialogRequest"): {
                                             auto content = varlist[1].get_string();
@@ -350,6 +362,13 @@ void handle_incoming() {
                                                 utils::send(m_gt_peer, m_proxy_server, NET_MESSAGE_GAME_MESSAGE, (uint8_t*)acti.c_str(), acti.length());
 
                                                 resolve_uid = false;
+                                                enet_packet_destroy(event.packet);
+                                                return;
+                                            } else if (content.find("add_button|report_player|`wReport Player``|noflags|0|0|") != -1) {
+                                                content = content.insert(content.find("add_button|report_player|`wReport Player``|noflags|0|0|"),
+                                                    "\nadd_button|surgery|`4Kill player``|noflags|0|0|\n");
+                                                varlist[1] = content;
+                                                utils::send(m_gt_peer, m_proxy_server, varlist, -1, -1);
                                                 enet_packet_destroy(event.packet);
                                                 return;
                                             }
