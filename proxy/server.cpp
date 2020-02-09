@@ -54,7 +54,6 @@ bool connecting = false;
 bool ingame = false;
 bool aapbypass = true;
 bool resolve_uid = false;
-int uid = -1;
 
 void resolve_uid_to_name(std::string uid) {
     std::string packet = "action|friends";
@@ -104,7 +103,7 @@ void handle_outgoing() {
                             return;
                         } else if (packet.find("|text|/resolve ") != -1) {
                             std::string uid = packet.substr(packet.find("/resolve ") + 9);
-                            std::string acti = "action|log\nmsg|resolving moderator uid (" + uid + ")";
+                            std::string acti = "action|log\nmsg|resolving uid (" + uid + ")";
                             utils::send(m_gt_peer, m_proxy_server, NET_MESSAGE_GAME_MESSAGE, (uint8_t*)acti.c_str(), acti.length());
                             resolve_uid_to_name(uid);
                             enet_packet_destroy(evt.packet);
