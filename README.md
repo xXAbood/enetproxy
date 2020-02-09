@@ -14,6 +14,8 @@
 * Supports modifying, ignoring, and making new packets
 * Has a PoC /name name command to call OnNameChanged function for local client.
 * Has a PoC OnSpawn modifier which appends netid to each players' name, and gives you unlim zoom
+* Resolve player uid into their name and current world.
+* Automatically resolve invisible moderator names if they are in same world
 * Can both intercept outgoing and incoming packets
 * Integrated http server
 * Ignore tracking packets and crash log requests
