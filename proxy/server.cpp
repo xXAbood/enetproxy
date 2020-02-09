@@ -54,7 +54,12 @@ bool connecting = false;
 bool ingame = false;
 bool aapbypass = true;
 bool resolve_uid = false;
+bool resolve_uid2 = false;
 
+void send_log(std::string message) {
+    std::string msg = "action|log\nmsg|" + message;
+    utils::send(m_gt_peer, m_proxy_server, NET_MESSAGE_GAME_MESSAGE, (uint8_t*)msg.c_str(), msg.length());
+}
 void resolve_uid_to_name(std::string uid) {
     std::string packet = "action|friends";
     utils::send(m_server_peer, m_real_server, NET_MESSAGE_GENERIC_TEXT, (uint8_t*)packet.c_str(), packet.length());
@@ -63,6 +68,13 @@ void resolve_uid_to_name(std::string uid) {
     packet = "action|dialog_return\ndialog_name|show_mentees\nbuttonClicked|" + uid;
     utils::send(m_server_peer, m_real_server, NET_MESSAGE_GENERIC_TEXT, (uint8_t*)packet.c_str(), packet.length());
     resolve_uid = true;
+}
+void resolve_name_to_uid(std::string name) {
+    std::string packet = "action|input\n|text|/ignore /" + name;
+    utils::send(m_server_peer, m_real_server, NET_MESSAGE_GENERIC_TEXT, (uint8_t*)packet.c_str(), packet.length());
+    packet = "action|friends";
+    utils::send(m_server_peer, m_real_server, NET_MESSAGE_GENERIC_TEXT, (uint8_t*)packet.c_str(), packet.length());
+    resolve_uid2 = true;
 }
 //Separated these into two because outgoing returned in cases of packet disconnect therefore not handling incoming packets at all at that time.
 void handle_outgoing() {
@@ -97,8 +109,7 @@ void handle_outgoing() {
                             variantlist_t va{ "OnNameChanged" };
                             va[1] = name;
                             utils::send(m_gt_peer, m_proxy_server, va, m_netid, -1);
-                            std::string acti = ("action|log\nmsg|name set to: " + name);
-                            utils::send(m_gt_peer, m_proxy_server, NET_MESSAGE_GAME_MESSAGE, (uint8_t*)acti.c_str(), acti.length());
+                            send_log("name set to: " + name);
                             enet_packet_destroy(evt.packet);
                             return;
                         } else if (packet.find("|text|/flag ") != -1) {
@@ -109,18 +120,23 @@ void handle_outgoing() {
                             va[3] = flag;
                             va[4] = 3;
                             utils::send(m_gt_peer, m_proxy_server, va, m_netid, -1);
-                            std::string acti = ("action|log\nmsg|flag set to item id: " + flag);
-                            utils::send(m_gt_peer, m_proxy_server, NET_MESSAGE_GAME_MESSAGE, (uint8_t*)acti.c_str(), acti.length());
+                            send_log("flag set to item id: " + std::to_string(flag));
                             enet_packet_destroy(evt.packet);
                             return;
                         } else if (packet.find("|text|/resolve ") != -1) {
                             std::string uid = packet.substr(packet.find("/resolve ") + 9);
-                            std::string acti = "action|log\nmsg|resolving uid (" + uid + ")";
-                            utils::send(m_gt_peer, m_proxy_server, NET_MESSAGE_GAME_MESSAGE, (uint8_t*)acti.c_str(), acti.length());
+                            send_log("resolving uid " + uid);
                             resolve_uid_to_name(uid);
                             enet_packet_destroy(evt.packet);
                             return;
-                        } else if (packet.find("game_version|") != -1) {
+                        } else if (packet.find("|text|/uid ") != -1) {
+                            std::string name = packet.substr(packet.find("/uid ") + 5);
+                            send_log("resolving uid for " + name);
+                            resolve_name_to_uid(name);
+                            enet_packet_destroy(evt.packet);
+                            return;
+                        }
+                        else if (packet.find("game_version|") != -1) {
                             rtvar var = rtvar::parse(packet);
 
                             if (var.find("tankIDName") && aapbypass) {}
@@ -145,6 +161,13 @@ void handle_outgoing() {
                         auto text = utils::get_text(evt.packet);
                         std::string packet = text;
                         PRINTS("Game message: %s\n", packet.c_str());
+                        if (packet == "action|quit") {
+                            ingame = false;
+                            enet_host_destroy(m_real_server);
+                            m_real_server = nullptr;
+                            on_disconnect(true);
+                            return;
+                        }
                     } break;
                     case NET_MESSAGE_GAME_PACKET: {
                         auto packet = utils::get_struct(evt.packet);
@@ -220,6 +243,18 @@ void handle_incoming() {
                             auto text = utils::get_text(event.packet);
                             std::string packet = text;
                             PRINTC("Game message: %s\n", packet.c_str());
+
+                            if (resolve_uid2) {
+                                if (packet.find("PERSON IGNORED") != -1) {
+                                    std::string packet = "action|dialog_return\ndialog_name|friends_guilds\nbuttonClicked|showfriend";
+                                    utils::send(m_server_peer, m_real_server, NET_MESSAGE_GENERIC_TEXT, (uint8_t*)packet.c_str(), packet.length());
+                                    packet = "action|dialog_return\ndialog_name|friends\nbuttonClicked|friend_all";
+                                    utils::send(m_server_peer, m_real_server, NET_MESSAGE_GENERIC_TEXT, (uint8_t*)packet.c_str(), packet.length());
+                                } else if (packet.find("Nobody is currently online with the name") != -1) {
+                                    resolve_uid2 = false;
+                                    send_log("Target is offline, cant find uid.");
+                                }
+                            }
                         } break;
                         case NET_MESSAGE_GAME_PACKET: {
                             auto packet = utils::get_struct(event.packet);
@@ -269,6 +304,34 @@ void handle_incoming() {
 
                                             //hide unneeded ui when resolving
                                             if (resolve_uid && (content.find("Apprentices Online") != -1 || content.find("Social Portal") != -1)) {
+                                                enet_packet_destroy(event.packet);
+                                                return;
+                                            } //for the /uid command
+                                            else if (resolve_uid2 && (content.find("friend_all|Show offline") != -1 || content.find("Social Portal") != -1) ||
+                                                     content.find("Are you sure you wish to stop ignoring") != -1) {
+                                                enet_packet_destroy(event.packet);
+                                                return;
+                                            } else if (resolve_uid2 && content.find("Ok, you will now be able to see chat") != -1) {
+                                                resolve_uid2 = false;
+                                                enet_packet_destroy(event.packet);
+                                                return;
+                                            } else if (resolve_uid2 && content.find("`4Stop ignoring") != -1) {
+                                                int pos = content.rfind("|`4Stop ignoring");
+                                                auto ignore_substring = content.substr(0, pos);
+                                                auto uid = ignore_substring.substr(ignore_substring.rfind("add_button|") + 11);
+                                                auto uid_int = atoi(uid.c_str());
+                                                if (uid_int == 0) {
+                                                    resolve_uid2 = false;
+                                                    send_log("name resolving seems to have failed.");
+                                                } else {
+                                                    send_log("Target UID: " + uid);
+                                                    std::string packet = "action|dialog_return\ndialog_name|friends\nbuttonClicked|" + uid;
+                                                    utils::send(m_server_peer, m_real_server, NET_MESSAGE_GENERIC_TEXT, (uint8_t*)packet.c_str(), packet.length());
+                                                    packet =
+                                                        "action|dialog_return\ndialog_name|friends_remove\n" + std::string("friendID|") + uid + "|\nbuttonClicked|remove";
+                                                    utils::send(m_server_peer, m_real_server, NET_MESSAGE_GENERIC_TEXT, (uint8_t*)packet.c_str(), packet.length());
+                                                }
+
                                                 enet_packet_destroy(event.packet);
                                                 return;
                                             } else if (resolve_uid && content.find("|Remove as Apprentice|noflags") != -1) {
