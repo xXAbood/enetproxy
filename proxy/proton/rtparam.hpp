@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 #include "../utils.h"
+#include <algorithm>
 
 class rtvar {
    public:
@@ -14,6 +15,9 @@ class rtvar {
         pair() {
         }
         pair(std::string key, std::initializer_list<std::string> values) : m_key(key), m_values(values) {
+        }
+        bool operator==( const rtvar::pair& rst) {
+            return m_key == rst.m_key && m_values[0] == rst.m_values[0];
         }
         static pair parse(std::string str) {
             pair ret{};
@@ -121,6 +125,13 @@ class rtvar {
     }
     size_t size() const {
         return m_pairs.size();
+    }
+    void remove(const std::string& key) {
+        auto pair = find(key);
+        if (pair) {
+            auto& ref = *pair;
+            m_pairs.erase(std::remove(m_pairs.begin(), m_pairs.end(), ref), m_pairs.end());
+        }
     }
 
    private:

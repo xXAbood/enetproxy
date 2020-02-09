@@ -52,6 +52,7 @@ void on_disconnect(bool reset) {
 
 bool connecting = false;
 bool ingame = false;
+bool aapbypass = true;
 
 //Separated these into two because outgoing returned in cases of packet disconnect therefore not handling incoming packets at all at that time.
 void handle_outgoing() {
@@ -91,8 +92,18 @@ void handle_outgoing() {
                             enet_packet_destroy(evt.packet);
                             return;
                         }
-                        if (packet.find("game_version|2.996") != -1) {
-                            utils::replace(packet, "2.996", m_gtversion);
+                        if (packet.find("game_version|") != -1) {
+                            rtvar var = rtvar::parse(packet);
+
+                            if (var.find("tankIDName") && aapbypass) {}
+
+                            var.find("wk")->m_values[0] = utils::generate_rid();
+                            var.find("zf")->m_values[0] = std::to_string(utils::random(INT_MIN, INT_MAX));
+                            var.find("hash")->m_values[0] = std::to_string(utils::random(INT_MIN, INT_MAX));
+                            var.find("hash2")->m_values[0] = std::to_string(utils::random(INT_MIN, INT_MAX));
+                            var.find("meta")->m_values[0] = utils::random(utils::random(6, 10)) + ".com";
+                            var.find("game_version")->m_values[0] = m_gtversion;
+                            packet = var.serialize();
                             ingame = false;
                             PRINTS("Spoofing gt version\n");
                             utils::send(m_server_peer, m_real_server, NET_MESSAGE_GENERIC_TEXT, (uint8_t*)packet.c_str(), packet.length());
@@ -221,7 +232,7 @@ void handle_incoming() {
                                         case fnv32("OnConsoleMessage"): {
                                             varlist[1] = "`4[PROXY]`` " + varlist[1].get_string();
                                             utils::send(m_gt_peer, m_proxy_server, varlist);
-                                        }
+                                        } break;
                                         case fnv32("OnSpawn"): {
                                             std::string meme = varlist.get(1).get_string();
                                             rtvar var = rtvar::parse(meme);
@@ -248,7 +259,7 @@ void handle_incoming() {
                                                 utils::send(m_gt_peer, m_proxy_server, varlist, -1, -1);
                                                 return;
                                             }
-                                        }
+                                        } break;
                                     }
                                 } break;
 
