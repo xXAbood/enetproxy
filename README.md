@@ -11,11 +11,13 @@
 ## Features
 * Print all variantlists and function calls
 * Print all text packets
+* Resolve player uid into their name and current world.
 * Supports modifying, ignoring, and making new packets
+* Automatically resolve invisible moderator names if they are in same world
+* Kill players with wrench
+* /legal command to clear malpractice without owning legal briefs
 * Has a PoC /name name command to call OnNameChanged function for local client.
 * Has a PoC OnSpawn modifier which appends netid to each players' name, and gives you unlim zoom
-* Resolve player uid into their name and current world.
-* Automatically resolve invisible moderator names if they are in same world
 * Can both intercept outgoing and incoming packets
 * Integrated http server
 * Ignore tracking packets and crash log requests
@@ -27,7 +29,6 @@
 * Automatically solve captcha
 * More commands
 * send set state to change gravity, speed, other things
-* Kill players with wrench using surgery dialog
 
 ## Changelog
 # 1.3
