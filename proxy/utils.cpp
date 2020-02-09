@@ -75,6 +75,8 @@ bool utils::replace(std::string& str, const std::string& from, const std::string
     return true;
 }
 void utils::send(ENetPeer* peer, ENetHost* host, int32_t type, uint8_t* data, int32_t len) {
+    if (!peer || !host)
+        return;
     ENetPacket* packet = enet_packet_create(0, len + 5, ENET_PACKET_FLAG_RELIABLE);
     gametextpacket_t* game_packet = (gametextpacket_t*)packet->data;
     game_packet->m_type = type;
@@ -88,6 +90,10 @@ void utils::send(ENetPeer* peer, ENetHost* host, int32_t type, uint8_t* data, in
     enet_host_flush(host);
 }
 void utils::send(ENetPeer* peer, ENetHost* host, variantlist_t& list, int32_t netid, int32_t delay) {
+    
+    if (!peer || !host)
+        return;
+
     uint32_t data_size = 0;
     void* data = list.serialize_to_mem(&data_size, nullptr);
 
