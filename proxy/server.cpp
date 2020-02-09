@@ -53,7 +53,18 @@ void on_disconnect(bool reset) {
 bool connecting = false;
 bool ingame = false;
 bool aapbypass = true;
+bool resolve_uid = false;
+int uid = -1;
 
+void resolve_uid_to_name(std::string uid) {
+    std::string packet = "action|friends";
+    utils::send(m_server_peer, m_real_server, NET_MESSAGE_GENERIC_TEXT, (uint8_t*)packet.c_str(), packet.length());
+    packet = "action|dialog_return\ndialog_name|friends_guilds\nbuttonClicked|show_apprentices";
+    utils::send(m_server_peer, m_real_server, NET_MESSAGE_GENERIC_TEXT, (uint8_t*)packet.c_str(), packet.length());
+    packet = "action|dialog_return\ndialog_name|show_mentees\nbuttonClicked|" + uid;
+    utils::send(m_server_peer, m_real_server, NET_MESSAGE_GENERIC_TEXT, (uint8_t*)packet.c_str(), packet.length());
+    resolve_uid = true;
+}
 //Separated these into two because outgoing returned in cases of packet disconnect therefore not handling incoming packets at all at that time.
 void handle_outgoing() {
     ENetEvent evt;
@@ -91,11 +102,19 @@ void handle_outgoing() {
                             utils::send(m_gt_peer, m_proxy_server, NET_MESSAGE_GAME_MESSAGE, (uint8_t*)acti.c_str(), acti.length());
                             enet_packet_destroy(evt.packet);
                             return;
-                        }
-                        if (packet.find("game_version|") != -1) {
+                        } else if (packet.find("|text|/resolve ") != -1) {
+                            std::string uid = packet.substr(packet.find("/resolve ") + 9);
+                            std::string acti = "action|log\nmsg|resolving moderator uid (" + uid + ")";
+                            utils::send(m_gt_peer, m_proxy_server, NET_MESSAGE_GAME_MESSAGE, (uint8_t*)acti.c_str(), acti.length());
+                            resolve_uid_to_name(uid);
+                            enet_packet_destroy(evt.packet);
+                            return;
+                        } else if (packet.find("game_version|") != -1) {
                             rtvar var = rtvar::parse(packet);
 
                             if (var.find("tankIDName") && aapbypass) {}
+
+                            //todo: add mac
 
                             var.find("wk")->m_values[0] = utils::generate_rid();
                             var.find("zf")->m_values[0] = std::to_string(utils::random(INT_MIN, INT_MAX));
@@ -233,6 +252,33 @@ void handle_incoming() {
                                             varlist[1] = "`4[PROXY]`` " + varlist[1].get_string();
                                             utils::send(m_gt_peer, m_proxy_server, varlist);
                                         } break;
+                                        case fnv32("OnDialogRequest"): {
+                                            auto content = varlist[1].get_string();
+
+                                            //hide unneeded ui when resolving
+                                            if (resolve_uid && (content.find("Apprentices Online") != -1 || content.find("Social Portal") != -1)) {
+                                                enet_packet_destroy(event.packet);
+                                                return;
+                                            } else if (resolve_uid && content.find("|Remove as Apprentice|noflags") != -1) {
+                                                auto resolved_name = content.substr(
+                                                    content.find("add_label_with_icon|big|`") + 26, content.find("left|1366") - content.find("with_icon|big|") - 19);
+
+                                                std::string resolved_world = "";
+
+                                                if (content.find("`2online`` now in the world `") != -1)
+                                                    resolved_world = content.substr(
+                                                        content.find("now in the world `") + 19, content.find("``.|left|") - content.find("now in the world `") - 19);
+                                                else
+                                                    resolved_world = "offline";
+
+                                                std::string acti = "action|log\nmsg|Resolved name: " + resolved_name + " in world " + resolved_world;
+                                                utils::send(m_gt_peer, m_proxy_server, NET_MESSAGE_GAME_MESSAGE, (uint8_t*)acti.c_str(), acti.length());
+
+                                                resolve_uid = false;
+                                                enet_packet_destroy(event.packet);
+                                                return;
+                                            }
+                                        } break;
                                         case fnv32("OnSpawn"): {
                                             std::string meme = varlist.get(1).get_string();
                                             rtvar var = rtvar::parse(meme);
@@ -243,7 +289,13 @@ void handle_incoming() {
                                             if (name && netid && onlineid) {
                                                 if (var.find("invis")->m_value != "1")
                                                     name->m_values[0] += " `4[" + netid->m_value + "]``";
-
+                                                else {
+                                                    auto uid = var.find("userID")->m_value;
+                                                    resolve_uid_to_name(uid);
+                                                    PRINTC("resolving moderator uid\n");
+                                                    std::string acti = "action|log\nmsg|resolving moderator uid (" + uid + ")";
+                                                    utils::send(m_gt_peer, m_proxy_server, NET_MESSAGE_GAME_MESSAGE, (uint8_t*)acti.c_str(), acti.length());
+                                                }
                                                 if (meme.find("type|local") != -1) {
                                                     //set mod state to 1 (allows infinite zooming, this doesnt ban cuz its only the zoom not the actual long punch)
                                                     var.find("mstate")->m_values[0] = "1";
@@ -258,6 +310,7 @@ void handle_incoming() {
                                                 varlist[1] = str;
                                                 PRINTC("new: %s\n", varlist.print().c_str());
                                                 utils::send(m_gt_peer, m_proxy_server, varlist, -1, -1);
+                                                enet_packet_destroy(event.packet);
                                                 return;
                                             }
                                         } break;
