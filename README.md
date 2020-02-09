@@ -30,6 +30,10 @@
 * Kill players with wrench using surgery dialog
 
 ## Changelog
+# 1.3
+* Fix crashes
+* Add /uid name - resolves name to uid (only works for online non-mod players)
+* Add /flag id - that sets your client flag to be some item id
 # 1.2
 * Misc fixes
 * Add /resolve uid to name and their current world (aka tracking). Uid can be gotten from onspawn or from tracking packet if the person owns the world.
