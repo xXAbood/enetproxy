@@ -101,9 +101,8 @@ void handle_outgoing() {
                             utils::send(m_gt_peer, m_proxy_server, NET_MESSAGE_GAME_MESSAGE, (uint8_t*)acti.c_str(), acti.length());
                             enet_packet_destroy(evt.packet);
                             return;
-                        }
-                        else if (packet.find("|text|/flag ") != -1) {
-                            int flag = stoi(packet.substr(packet.find("/flag ") + 5));
+                        } else if (packet.find("|text|/flag ") != -1) {
+                            int flag = atoi(packet.substr(packet.find("/flag ") + 5).c_str());
                             variantlist_t va{ "OnGuildDataChanged" };
                             va[1] = 1;
                             va[2] = 2;
@@ -182,9 +181,10 @@ void handle_outgoing() {
                     default: PRINTS("Got unknown packet of type %d.\n", packet_type); break;
                 }
 
+                if (!m_server_peer || !m_real_server)
+                    return;
                 enet_peer_send(m_server_peer, 0, evt.packet);
-                if (m_real_server)
-                    enet_host_flush(m_real_server);
+                enet_host_flush(m_real_server);
             } break;
             case ENET_EVENT_TYPE_DISCONNECT: {
                 if (ingame)
@@ -347,6 +347,8 @@ void handle_incoming() {
                     }
                 }
 
+                if (!m_gt_peer || !m_proxy_server)
+                    return;
                 enet_peer_send(m_gt_peer, 0, event.packet);
                 enet_host_flush(m_proxy_server);
             } break;
