@@ -101,6 +101,19 @@ void handle_outgoing() {
                             utils::send(m_gt_peer, m_proxy_server, NET_MESSAGE_GAME_MESSAGE, (uint8_t*)acti.c_str(), acti.length());
                             enet_packet_destroy(evt.packet);
                             return;
+                        }
+                        else if (packet.find("|text|/flag ") != -1) {
+                            int flag = stoi(packet.substr(packet.find("/flag ") + 5));
+                            variantlist_t va{ "OnGuildDataChanged" };
+                            va[1] = 1;
+                            va[2] = 2;
+                            va[3] = flag;
+                            va[4] = 3;
+                            utils::send(m_gt_peer, m_proxy_server, va, m_netid, -1);
+                            std::string acti = ("action|log\nmsg|flag set to item id: " + flag);
+                            utils::send(m_gt_peer, m_proxy_server, NET_MESSAGE_GAME_MESSAGE, (uint8_t*)acti.c_str(), acti.length());
+                            enet_packet_destroy(evt.packet);
+                            return;
                         } else if (packet.find("|text|/resolve ") != -1) {
                             std::string uid = packet.substr(packet.find("/resolve ") + 9);
                             std::string acti = "action|log\nmsg|resolving uid (" + uid + ")";
