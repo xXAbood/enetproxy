@@ -25,8 +25,15 @@
 * Automatically solve captcha
 * More commands
 * send set state to change gravity, speed, other things
+* Kill players with wrench using surgery dialog
 
 ## Changelog
+# 1.2
+* Misc fixes
+* Add /resolve uid to name and their current world (aka tracking). Uid can be gotten from onspawn or from tracking packet if the person owns the world.
+* Automatically resolve moderator uids when they enter
+* Edit some values like meta/wk/hash2 so theres a partial automatic unban (you need to add mac address yourself, I didnt because i was using it for something else)
+
 # 1.1
 * Subserver switching should work, apparently there was no problem in the first place as the implementation worked already
 * Edit ping requests always to be non offensive behavior
@@ -38,5 +45,7 @@
 
 ### Video: https://streamable.com/bhokj  
 
+![x](https://i.imgur.com/RG2o9pM.png "Proxy pic 3")
+![x](https://i.imgur.com/3DFiMgS.png "Proxy pic 2")
 ![x](https://i.imgur.com/Lndhj70.png "Proxy pic 1")
 
