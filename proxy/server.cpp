@@ -136,11 +136,10 @@ void handle_outgoing() {
                             resolve_name_to_uid(name);
                             enet_packet_destroy(evt.packet);
                             return;
-                            elif (packet.find("|text|/phelp") != -1) {
-                            packet.substr(packet.find("/phelp");
-                            utils::send(m_gt_peer, m_proxy_server, va, m_netid, -1);
-                            std::string acti = ("action|log\nmsg|/phelp, /resolve uid, /name (name), /flag (flag).");
-                            utils::send(m_gt_peer, m_proxy_server, NET_MESSAGE_GAME_MESSAGE, (uint8_t*)acti.c_str(), acti.length());
+                        }
+                            else if (packet.find("|text|/proxy") != -1) { //ghetto solution, but too lazy to make a framework for commands.
+                            packet.substr(packet.find("/proxy ") + 5);
+                            send_log("/legal - recovers surgery. /resolve (resolves uid). /uid (resolves uid). /flag (id). /name (name).");
                             enet_packet_destroy(evt.packet);
                             return;
                         } else if (packet.find("|text|/legal") != -1) {
