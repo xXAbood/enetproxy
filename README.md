@@ -16,6 +16,7 @@
 * Automatically resolve invisible moderator names if they are in same world
 * Kill players with wrench
 * /legal command to clear malpractice without owning legal briefs
+* More commands which you can find in the changelog
 * Has a PoC /name name command to call OnNameChanged function for local client.
 * Has a PoC OnSpawn modifier which appends netid to each players' name, and gives you unlim zoom
 * Can both intercept outgoing and incoming packets
@@ -31,6 +32,13 @@
 * send set state to change gravity, speed, other things
 
 ## Changelog
+# 1.4
+* Add /proxy - shows proxy commands
+* Add /tp player - teleports to a player in the world
+* Add /ghost - toggles ghost state (you wont move for others when its enabled)
+* Major refactor of the whole code
+* Add world/player classes, and some helpers for easier adding of new features
+
 # 1.3
 * Fix crashes
 * Add /uid name - resolves name to uid (only works for online non-mod players)
