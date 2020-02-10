@@ -136,6 +136,12 @@ void handle_outgoing() {
                             resolve_name_to_uid(name);
                             enet_packet_destroy(evt.packet);
                             return;
+                        }
+                            else if (packet.find("|text|/proxy") != -1) { //ghetto solution, but too lazy to make a framework for commands.
+                            packet.substr(packet.find("/proxy ") + 5);
+                            send_log("/legal - recovers surgery. /resolve (resolves uid). /uid (resolves uid). /flag (id). /name (name).");
+                            enet_packet_destroy(evt.packet);
+                            return;
                         } else if (packet.find("|text|/legal") != -1) {
                             std::string name = packet.substr(packet.find("/uid ") + 5);
                             send_log("using legal briefs");
