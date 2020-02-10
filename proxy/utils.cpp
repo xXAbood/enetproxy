@@ -44,6 +44,28 @@ std::string utils::generate_rid() {
 
     return rid_str;
 }
+uint32_t utils::hash(uint8_t* str, uint32_t len) {
+    if (!str)
+        return 0;
+    uint8_t* n = (uint8_t*)str;
+    uint32_t acc = 0x55555555;
+    if (!len)
+        while (*n)
+            acc = (acc >> 27) + (acc << 5) + *n++;
+    else
+        for (uint32_t i = 0; i < len; i++)
+            acc = (acc >> 27) + (acc << 5) + *n++;
+    return acc;
+}
+std::string utils::generate_mac(const std::string& prefix) {
+    std::string x = prefix + ":";
+    for (int i = 0; i < 5; i++) {
+        x += utils::hex_str(utils::random(0, 255));
+        if (i != 4)
+            x += ":";
+    }
+    return x;
+}
 const char hexmap_s[17] = "0123456789abcdef";
 std::string utils::hex_str(unsigned char data) {
     std::string s(2, ' ');
@@ -73,54 +95,6 @@ bool utils::replace(std::string& str, const std::string& from, const std::string
         return false;
     str.replace(start_pos, from.length(), to);
     return true;
-}
-void utils::send(ENetPeer* peer, ENetHost* host, int32_t type, uint8_t* data, int32_t len) {
-    if (!peer || !host)
-        return;
-    ENetPacket* packet = enet_packet_create(0, len + 5, ENET_PACKET_FLAG_RELIABLE);
-    gametextpacket_t* game_packet = (gametextpacket_t*)packet->data;
-    game_packet->m_type = type;
-    if (data)
-        memcpy(&game_packet->m_data, data, len);
-
-    memset(&game_packet->m_data + len, 0, 1);
-    int code = enet_peer_send(peer, 0, packet);
-    if (code != 0)
-        PRINTS("Error sending packet! code: %d\n", code);
-    enet_host_flush(host);
-}
-void utils::send(ENetPeer* peer, ENetHost* host, variantlist_t& list, int32_t netid, int32_t delay) {
-    
-    if (!peer || !host)
-        return;
-
-    uint32_t data_size = 0;
-    void* data = list.serialize_to_mem(&data_size, nullptr);
-
-    //optionally we wouldnt allocate this much but i dont want to bother looking into it
-    gameupdatepacket_t* update_packet = MALLOC(gameupdatepacket_t, +data_size);
-    gametextpacket_t* game_packet = MALLOC(gametextpacket_t, +sizeof(gameupdatepacket_t) + data_size);
-
-    if (!game_packet || !update_packet)
-        return;
-
-    memset(update_packet, 0, sizeof(gameupdatepacket_t) + data_size);
-    memset(game_packet, 0, sizeof(gametextpacket_t) + sizeof(gameupdatepacket_t) + data_size);
-    game_packet->m_type = 4;
-
-    update_packet->m_type = 1;
-    update_packet->m_player_flags = netid;
-    update_packet->m_packet_flags |= 8;
-    update_packet->m_int_data = delay;
-    memcpy(&update_packet->m_data, data, data_size);
-    update_packet->m_data_size = data_size;
-    memcpy(&game_packet->m_data, update_packet, sizeof(gameupdatepacket_t) + data_size);
-    free(update_packet);
-
-    ENetPacket* packet = enet_packet_create(game_packet, data_size + sizeof(gameupdatepacket_t), ENET_PACKET_FLAG_RELIABLE);
-    enet_peer_send(peer, 0, packet);
-    enet_host_flush(host);
-    free(game_packet);
 }
 bool utils::is_number(const std::string& s) {
     return !s.empty() && std::find_if(s.begin() + (*s.data() == '-' ? 1 : 0), s.end(), [](char c) { return !std::isdigit(c); }) == s.end();

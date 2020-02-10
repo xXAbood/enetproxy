@@ -160,6 +160,8 @@
     <ClCompile Include="enet\protocol.c" />
     <ClCompile Include="enet\unix.c" />
     <ClCompile Include="enet\win32.c" />
+    <ClCompile Include="events.cpp" />
+    <ClCompile Include="gt.cpp" />
     <ClCompile Include="http.cpp" />
     <ClCompile Include="proxy.cpp" />
     <ClCompile Include="sandbird\sandbird.c" />
@@ -176,8 +178,11 @@
     <ClInclude Include="enet\include\unix.h" />
     <ClInclude Include="enet\include\utility.h" />
     <ClInclude Include="enet\include\win32.h" />
+    <ClInclude Include="events.h" />
+    <ClInclude Include="gt.hpp" />
     <ClInclude Include="http.h" />
     <ClInclude Include="packet.h" />
+    <ClInclude Include="player.h" />
     <ClInclude Include="proton\hash.hpp" />
     <ClInclude Include="proton\rtparam.hpp" />
     <ClInclude Include="proton\variant.hpp" />
@@ -185,6 +190,7 @@
     <ClInclude Include="sandbird\sandbird.h" />
     <ClInclude Include="server.h" />
     <ClInclude Include="utils.h" />
+    <ClInclude Include="world.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

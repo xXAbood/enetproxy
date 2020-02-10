@@ -89,6 +89,17 @@ class rtvar {
         return nullptr;
     }
 
+    std::string get(const std::string& key) {
+        auto pair = find(key);
+        if (pair)
+            return pair->m_value;
+        return "";
+    }
+    void set(const std::string& key, std::string value) {
+        auto pair = find(key);
+        if (pair)
+            pair->m_values[0] = value;
+    }
     std::string serialize() {
         std::string ret{};
         for (auto& val : m_pairs) {
