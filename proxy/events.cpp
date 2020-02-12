@@ -177,6 +177,11 @@ bool events::in::variantlist(gameupdatepacket_t* packet) {
         gt::in_game = true;
 
     switch (hs::hash32(func.c_str())) {
+        //solve captcha
+        case fnv32("onShowCaptcha"): {
+            auto menu = varlist[1].get_string();
+            gt::solve_captcha(menu);
+        } break;
         case fnv32("OnRequestWorldSelectMenu"): {
             auto& world = g_server->m_world;
             world.players.clear();
