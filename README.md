@@ -27,11 +27,18 @@
 
 ## TODO
 * Support more gamepacket types
-* Automatically solve captcha
 * More commands
 * send set state to change gravity, speed, other things
 
 ## Changelog
+# 1.4.1
+* Add /proxy - shows proxy commands
+* Add /tp player - teleports to a player in the world
+* Add /ghost - toggles ghost state (you wont move for others when its enabled)
+* Major refactor of the whole code
+* Add world/player classes, and some helpers for easier adding of new features
+* Add solve captcha
+
 # 1.4
 * Add /proxy - shows proxy commands
 * Add /tp player - teleports to a player in the world
