@@ -2,6 +2,7 @@
 #include "gt.hpp"
 #include "server.h"
 #include "packet.h"
+#include "utils.h"
 
 std::string gt::version = "3.01";
 std::string gt::flag = "mv";
