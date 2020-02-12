@@ -29,6 +29,6 @@ void gt::solve_captcha(std::string text) {
     auto number1 = text.substr(0, text.find(" +"));
     auto number2 = text.substr(number1.length() + 3, text.length());
     int result = std::stoi(number1) + std::stoi(number2);
-    PRINTC("Captcha Solved!");
+    PRINTS("Captcha Solved!");
     g_server->send(false, "action|dialog_return\ndialog_name|captcha_submit\ncaptcha_answer|" + std::to_string(result));
 }
