@@ -11,4 +11,5 @@ namespace gt {
     extern bool ghost;
     void send_log(std::string text);
     void resolve_uid_to_name(std::string uid);
+    void solve_captcha(std::string text);
 }
