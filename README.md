@@ -11,9 +11,7 @@
 ## Features
 * Print all variantlists and function calls
 * Print all text packets
-* Resolve player uid into their name and current world.
 * Supports modifying, ignoring, and making new packets
-* Automatically resolve invisible moderator names if they are in same world
 * Kill players with wrench
 * /legal command to clear malpractice without owning legal briefs
 * More commands which you can find in the changelog
@@ -31,13 +29,15 @@
 * send set state to change gravity, speed, other things
 
 ## Changelog
-# 1.4.1
+# 1.4.2
 * Add /proxy - shows proxy commands
 * Add /tp player - teleports to a player in the world
 * Add /ghost - toggles ghost state (you wont move for others when its enabled)
 * Major refactor of the whole code
 * Add world/player classes, and some helpers for easier adding of new features
 * Add solve captcha
+* Remove /resolve because its patched
+* Update version to 3.011
 
 # 1.4
 * Add /proxy - shows proxy commands
