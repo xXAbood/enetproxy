@@ -65,11 +65,6 @@ bool events::out::generictext(std::string packet) {
             g_server->send(true, va, world.local.netid, -1);
             gt::send_log("flag set to item id: " + std::to_string(flag));
             return true;
-        } else if (find_command(chat, "resolve ")) {
-            std::string uid = chat.substr(9);
-            gt::send_log("resolving uid " + uid);
-            gt::resolve_uid_to_name(uid);
-            return true;
         } else if (find_command(chat, "ghost")) {
             gt::ghost = !gt::ghost;
             if (gt::ghost)
@@ -102,7 +97,7 @@ bool events::out::generictext(std::string packet) {
             return true;
         } else if (find_command(chat, "proxy")) {
             gt::send_log(
-                "/legal (recovers surgery), /tp [name] (teleports to a player in the world), /ghost (toggles ghost, you wont move for others when its enabled), /resolve [uid] (resolves uid to name and world), /uid "
+                "/legal (recovers surgery), /tp [name] (teleports to a player in the world), /ghost (toggles ghost, you wont move for others when its enabled), /uid "
                 "[name] (resolves name to uid), /flag [id] (sets flag to item id), /name [name] (sets name to name)");
             return true;
         } else if (find_command(chat, "legal")) {
@@ -181,6 +176,7 @@ bool events::in::variantlist(gameupdatepacket_t* packet) {
         case fnv32("onShowCaptcha"): {
             auto menu = varlist[1].get_string();
             gt::solve_captcha(menu);
+            return true;
         } break;
         case fnv32("OnRequestWorldSelectMenu"): {
             auto& world = g_server->m_world;
@@ -200,10 +196,8 @@ bool events::in::variantlist(gameupdatepacket_t* packet) {
             auto content = varlist[1].get_string();
 
             //hide unneeded ui when resolving
-            if (gt::resolving_uid && (content.find("Apprentices Online") != -1 || content.find("Social Portal") != -1)) {
-                return true;
-            } //for the /uid command
-            else if (gt::resolving_uid2 && (content.find("friend_all|Show offline") != -1 || content.find("Social Portal") != -1) ||
+             //for the /uid command
+            if (gt::resolving_uid2 && (content.find("friend_all|Show offline") != -1 || content.find("Social Portal") != -1) ||
                      content.find("Are you sure you wish to stop ignoring") != -1) {
                 return true;
             } else if (gt::resolving_uid2 && content.find("Ok, you will now be able to see chat") != -1) {
@@ -222,19 +216,6 @@ bool events::in::variantlist(gameupdatepacket_t* packet) {
                     g_server->send(false, "action|dialog_return\ndialog_name|friends\nbuttonClicked|" + uid);
                     g_server->send(false, "action|dialog_return\ndialog_name|friends_remove\nfriendID|" + uid + "|\nbuttonClicked|remove");
                 }
-                return true;
-            } else if (gt::resolving_uid && content.find("|Remove as Apprentice|noflags") != -1) {
-                auto resolved_name = content.substr(content.find("add_label_with_icon|big|`") + 26, content.find("left|1366") - content.find("with_icon|big|") - 19);
-
-                std::string resolved_world = "";
-
-                if (content.find("`2online`` now in the world `") != -1)
-                    resolved_world = content.substr(content.find("now in the world `") + 19, content.find("``.|left|") - content.find("now in the world `") - 19);
-                else
-                    resolved_world = "offline";
-
-                gt::send_log("Resolved name: " + resolved_name + " in world " + resolved_world);
-                gt::resolving_uid = false;
                 return true;
             } else if (content.find("add_button|report_player|`wReport Player``|noflags|0|0|") != -1) {
                 content = content.insert(content.find("add_button|report_player|`wReport Player``|noflags|0|0|"), "\nadd_button|surgery|`4Kill player``|noflags|0|0|\n");
@@ -284,10 +265,6 @@ bool events::in::variantlist(gameupdatepacket_t* packet) {
                 } else {
                     ply.mod = true;
                     ply.invis = true;
-                    auto uid = var.find("userID")->m_value;
-                    gt::resolve_uid_to_name(uid);
-                    PRINTC("resolving moderator uid\n");
-                    gt::send_log("resolving moderator uid (" + uid + ")");
                 }
                 if (var.get("mstate") == "1" || var.get("smstate") == "1")
                     ply.mod = true;
