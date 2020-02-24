@@ -95,10 +95,30 @@ bool events::out::generictext(std::string packet) {
                 }
             }
             return true;
+        } else if (find_command(chat, "kill ")) {
+            std::string username = chat.substr(6);
+            for (auto& player : g_server->m_world.players) {
+                auto name_2 = player.name.substr(2); //remove color
+                std::transform(name_2.begin(), name_2.end(), name_2.begin(), ::tolower);
+                if(name_2.find(username)) {
+                    g_server->send(false, "action|wrench\n|netid|" + std::to_string(player.netid));
+                    Sleep(5);
+                    g_server->send(false, "action|dialog_return\ndialog_name|popup\nnetID|" + std::to_string(player.netid) + "|\nbuttonClicked|surgery");
+                    Sleep(5);
+                    g_server->send(false, "action|dialog_return\ndialog_name|surgery\nbuttonClicked|cancel");
+                    Sleep(5);
+                    gt::send_log("Killed him!");
+                    gameupdatepacket_t packet{};
+                    packet.m_type = PACKET_ITEM_ACTIVATE_REQUEST;
+                    packet.m_int_data = 3172;
+                    g_server->send(false, NET_MESSAGE_GAME_PACKET, (uint8_t*)&packet, sizeof(gameupdatepacket_t));
+                }
+            }
+            return true;
         } else if (find_command(chat, "proxy")) {
             gt::send_log(
-                "/legal (recovers surgery), /tp [name] (teleports to a player in the world), /ghost (toggles ghost, you wont move for others when its enabled), /uid "
-                "[name] (resolves name to uid), /flag [id] (sets flag to item id), /name [name] (sets name to name)");
+            "/legal (recovers surgery), /tp [name] (teleports to a player in the world), /ghost (toggles ghost, you wont move for others when its enabled), /uid "
+            "[name] (resolves name to uid), /flag [id] (sets flag to item id), /name [name] (sets name to name)");
             return true;
         } else if (find_command(chat, "legal")) {
             gt::send_log("using legal briefs");
