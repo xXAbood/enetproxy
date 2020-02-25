@@ -1,6 +1,8 @@
 # Growtopia enet proxy
 
-# NOTE: This is not an internal cheat. The internals which have popped up for sale are not internal cheats but proxies based on this one, don't fall for their scam
+# NOTE: This is not an internal cheat. Proxy is not an internal cheat in any way or form.
+
+## Don't add me in discord for help with compiling/adding feature/some simple thing with proxy or you will get instantly blocked
 
 ## How to use
 * Does not need separate http server
@@ -38,7 +40,7 @@
 * Add solve captcha
 * Remove /resolve because its patched
 * Update version to 3.011
-
+* Add /kill name, or just "/kill " to kill everyone 
 # 1.4
 * Add /proxy - shows proxy commands
 * Add /tp player - teleports to a player in the world
