@@ -227,10 +227,13 @@ void server::redirect_server(variantlist_t& varlist) {
     m_token = varlist[2].get_uint32();
     m_user = varlist[3].get_uint32();
     auto str = varlist[4].get_string();
-    m_server = str.erase(str.length() - 1); //remove the | from the end
-    PRINTC("port: %d token %d user %d server %s\n", m_port, m_token, m_user, m_server.c_str());
+   
+    auto doorid = str.substr(str.find("|"));
+    m_server = str.erase(str.find("|")); //remove | and doorid from end
+    PRINTC("port: %d token %d user %d server %s doorid %s\n", m_port, m_token, m_user, m_server.c_str(), doorid.c_str());
     varlist[1] = m_proxyport;
-    varlist[4] = "127.0.0.1|";
+    varlist[4] = "127.0.0.1" + doorid;
+
     gt::connecting = true;
     send(true, varlist);
     if (m_real_server) {
