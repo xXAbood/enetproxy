@@ -72,6 +72,11 @@ bool events::out::generictext(std::string packet) {
             else
                 gt::send_log("Ghost is now disabled.");
             return true;
+        } else if (find_command(chat, "country ")) {
+            std::string cy = chat.substr(9);
+            gt::flag = cy;
+            gt::send_log("your country set to " + cy + ", (Relog to game to change it successfully!)");
+            return true;
         } else if (find_command(chat, "uid ")) {
             std::string name = chat.substr(5);
             gt::send_log("resolving uid for " + name);
