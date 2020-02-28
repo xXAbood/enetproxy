@@ -97,7 +97,7 @@ class rtvar {
     }
     void set(const std::string& key, std::string value) {
         auto pair = find(key);
-        if (pair)
+        if (pair && pair->m_values.size() >= 1)
             pair->m_values[0] = value;
     }
     std::string serialize() {
