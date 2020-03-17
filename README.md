@@ -31,6 +31,10 @@
 * send set state to change gravity, speed, other things
 
 ## Changelog
+
+# 1.4.3
+* Add AAP Bypass with no spoof info needed
+
 # 1.4.2
 * Add /proxy - shows proxy commands
 * Add /tp player - teleports to a player in the world
