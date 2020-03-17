@@ -162,7 +162,7 @@ bool events::out::generictext(std::string packet) {
         */
         if (var.find("tankIDName")) {
             var.find("mac")->m_values[0] = "02:00:00:00:00:00";
-            var.find("platformID")->m_values[0] = "4"; //ios
+            var.find("platformID")->m_values[0] = "4"; //android
             var.remove("fz");
             var.remove("rid");
         }
