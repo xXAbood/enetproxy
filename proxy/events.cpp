@@ -105,7 +105,7 @@ bool events::out::generictext(std::string packet) {
             for (auto& player : g_server->m_world.players) {
                 auto name_2 = player.name.substr(2); //remove color
                 std::transform(name_2.begin(), name_2.end(), name_2.begin(), ::tolower);
-                if(name_2.find(username)) {
+                if (name_2.find(username)) {
                     g_server->send(false, "action|wrench\n|netid|" + std::to_string(player.netid));
                     Sleep(5);
                     g_server->send(false, "action|dialog_return\ndialog_name|popup\nnetID|" + std::to_string(player.netid) + "|\nbuttonClicked|surgery");
@@ -122,8 +122,8 @@ bool events::out::generictext(std::string packet) {
             return true;
         } else if (find_command(chat, "proxy")) {
             gt::send_log(
-            "/legal (recovers surgery), /tp [name] (teleports to a player in the world), /ghost (toggles ghost, you wont move for others when its enabled), /uid "
-            "[name] (resolves name to uid), /flag [id] (sets flag to item id), /name [name] (sets name to name)");
+                "/legal (recovers surgery), /tp [name] (teleports to a player in the world), /ghost (toggles ghost, you wont move for others when its enabled), /uid "
+                "[name] (resolves name to uid), /flag [id] (sets flag to item id), /name [name] (sets name to name)");
             return true;
         } else if (find_command(chat, "legal")) {
             gt::send_log("using legal briefs");
@@ -151,6 +151,21 @@ bool events::out::generictext(std::string packet) {
         var.set("meta", utils::random(utils::random(6, 10)) + ".com");
         var.set("game_version", gt::version);
         var.set("country", gt::flag);
+
+        /*
+        AAP Bypass
+        Only making this public because after 1 month being reported to ubi, nothing happened
+        Then after a month (around 15.3) it got fixed for a whole single 1 day, and they publicly said it had been fixed
+        And at that time we shared how to do it because thought its useless, and then aap bypass started working again
+        and then 9999 new aap bypass services came to be public, and even playingo started selling it so no point keeping it private
+        With publishing this I hope ubi actually does something this time
+        */
+        if (var.find("tankIDName")) {
+            var.find("mac")->m_values[0] = "02:00:00:00:00:00";
+            var.find("platformID")->m_values[0] = "4"; //ios
+            var.remove("fz");
+            var.remove("rid");
+        }
 
         packet = var.serialize();
         gt::in_game = false;
@@ -221,9 +236,9 @@ bool events::in::variantlist(gameupdatepacket_t* packet) {
             auto content = varlist[1].get_string();
 
             //hide unneeded ui when resolving
-             //for the /uid command
+            //for the /uid command
             if (gt::resolving_uid2 && (content.find("friend_all|Show offline") != -1 || content.find("Social Portal") != -1) ||
-                     content.find("Are you sure you wish to stop ignoring") != -1) {
+                content.find("Are you sure you wish to stop ignoring") != -1) {
                 return true;
             } else if (gt::resolving_uid2 && content.find("Ok, you will now be able to see chat") != -1) {
                 gt::resolving_uid2 = false;
