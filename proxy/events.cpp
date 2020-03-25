@@ -100,6 +100,12 @@ bool events::out::generictext(std::string packet) {
                 }
             }
             return true;
+        } else if (find_command(chat, "skin ")) {
+            int skin = atoi(chat.substr(6).c_str());
+            variantlist_t va{ "OnChangeSkin" };
+            va[1] = skin;
+            g_server->send(true, va, world.local.netid, -1);
+            return true;
         } else if (find_command(chat, "kill ")) {
             std::string username = chat.substr(6);
             for (auto& player : g_server->m_world.players) {
